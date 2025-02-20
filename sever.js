@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import { connectDB } from './database/connection.js'
 import InventoryRoute from './routes/inventoryroute.js'
+import UserRoute from './routes/userroute.js'
 
 
 dotenv.config()
@@ -31,6 +32,7 @@ app.get('/',(req,res)=>{
     res.send('Working')
 })
 
+app.use('/users',UserRoute)
 app.use('/inventory',InventoryRoute)
 
 

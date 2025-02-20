@@ -1,192 +1,219 @@
-# Inventory Management API
+# Inventory Management System
 
-## Overview
-This is an Inventory Management API built with Node.js, Express, and TypeORM. It allows users to add, update, check stock levels, and generate reports for inventory items.
+This is an **Inventory Management System** built using **Node.js, Express, TypeORM, and PostgreSQL**. It provides APIs for managing inventory, including adding, updating, listing, checking stock in/out, and generating reports.
 
 ## Features
-- Add single or bulk inventory items
-- List inventory with filters
-- Update inventory details
+- User authentication with JWT
+- Add, update, and list inventory items
+- Bulk inventory addition
 - Stock check-in and check-out
-- Generate inventory reports with sorting and filtering options
+- Inventory report generation with filtering and sorting
 
 ## Installation
 
 ### Prerequisites
-- Node.js (Latest LTS recommended)
-- PostgreSQL or any other compatible database
+- Node.js installed
+- PostgreSQL installed and running
+- `.env` file set up with the following variables:
+  ```env
+  PORT=8000
+  JWT_SECRET=your_jwt_secret
+  DATABASE_URL=your_postgres_connection_string
+  ```
 
-### Steps
+### Setup
 1. Clone the repository:
    ```sh
-   git clone <repo-url>
-   cd inventory-management-api
+   git clone https://github.com/your-repo/inventory-management.git
+   cd inventory-management
    ```
 2. Install dependencies:
    ```sh
    npm install
    ```
-3. Configure the database in `database/connection.js`:
-   ```js
-   import { DataSource } from "typeorm";
-   
-   export const AppDataSource = new DataSource({
-       type: "postgres", // Change based on your database
-       host: "localhost",
-       port: 5432,
-       username: "your_db_user",
-       password: "your_db_password",
-       database: "your_db_name",
-       synchronize: true,
-       entities: ["../models/*.js"],
-   });
-   ```
-4. Run the server:
+3. Run the server:
    ```sh
-   npm run dev
+   npm run dev   # Starts the server with nodemon
    ```
 
 ## API Endpoints
 
-### 1. Add Single Inventory Item
-**POST** `/addinventory`
-#### Request Body
-```json
-{
-  "name": "Laptop",
-  "description": "Gaming Laptop",
-  "quantity": 10,
-  "price": 1200.50
-}
-```
-#### Response
-```json
-{
-  "message": "Inventory added successfully",
-  "inventory": { "id": 1, "name": "Laptop", "quantity": 10, "price": 1200.50 }
-}
-```
+### **Authentication APIs**
 
-### 2. Add Bulk Inventory Items
-**POST** `/addbulkinventory`
-#### Request Body
-```json
-{
-  "items": [
-    { "name": "Keyboard", "description": "Mechanical", "quantity": 50, "price": 50 },
-    { "name": "Mouse", "description": "Wireless", "quantity": 30, "price": 30 }
-  ]
-}
-```
-#### Response
-```json
-{
-  "message": "Bulk inventory added",
-  "data": [...]
-}
-```
+#### **User Signup**
+- **Endpoint:** `POST /api/auth/signup`
+- **Description:** Registers a new user.
+- **Body:**
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "User registered successfully"
+  }
+  ```
 
-### 3. List Inventory
-**GET** `/list`
-#### Query Parameters (Optional)
-- `name`: Search by item name
-- `minPrice` / `maxPrice`: Filter by price range
-- `minQuantity` / `maxQuantity`: Filter by quantity range
-#### Example Request
-```
-GET /list?minPrice=100&maxPrice=1000
-```
-#### Response
-```json
-{
-  "message": "Inventory list retrieved",
-  "data": [...]
-}
-```
+#### **User Login**
+- **Endpoint:** `POST /api/auth/login`
+- **Description:** Logs in a user and returns a JWT token.
+- **Body:**
+  ```json
+  {
+    "email": "john@example.com",
+    "password": "securepassword"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "token": "your_jwt_token"
+  }
+  ```
 
-### 4. Update Inventory
-**PUT** `/update/:id`
-#### Request Body
-```json
-{
-  "name": "Gaming Laptop",
-  "description": "High-end Gaming Laptop",
-  "quantity": 15,
-  "price": 1500
-}
-```
-#### Response
-```json
-{
-  "message": "Inventory updated successfully",
-  "data": { "id": 1, "name": "Gaming Laptop", "quantity": 15, "price": 1500 }
-}
-```
+### **Inventory APIs**
 
-### 5. Stock Check-In
-**PUT** `/stock-in/:id`
-#### Request Body
-```json
-{
-  "quantity": 5
-}
-```
-#### Response
-```json
-{
-  "message": "Stock checked in",
-  "data": { "id": 1, "quantity": 20 }
-}
-```
+#### **Add Inventory Item**
+- **Endpoint:** `POST /api/inventory/addinventory`
+- **Authentication:** Requires Bearer Token
+- **Body:**
+  ```json
+  {
+    "name": "Laptop",
+    "description": "Gaming Laptop",
+    "quantity": 10,
+    "price": 1500
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Inventory added successfully",
+    "inventory": { ... }
+  }
+  ```
 
-### 6. Stock Check-Out
-**PUT** `/stock-out/:id`
-#### Request Body
-```json
-{
-  "quantity": 3
-}
-```
-#### Response
-```json
-{
-  "message": "Stock checked out",
-  "data": { "id": 1, "quantity": 17 }
-}
-```
+#### **Add Bulk Inventory**
+- **Endpoint:** `POST /api/inventory/addbulkinventory`
+- **Authentication:** Requires Bearer Token
+- **Body:**
+  ```json
+  {
+    "items": [
+      { "name": "Mouse", "description": "Wireless Mouse", "quantity": 50, "price": 20 },
+      { "name": "Keyboard", "description": "Mechanical Keyboard", "quantity": 30, "price": 80 }
+    ]
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Bulk inventory added",
+    "data": [ ... ]
+  }
+  ```
 
-### 7. Generate Reports
-**GET** `/report`
-#### Query Parameters (Optional)
-- `name`: Filter by item name
-- `minPrice`, `maxPrice`: Filter by price range
-- `minQuantity`, `maxQuantity`: Filter by quantity range
-- `status`: `in-stock` or `out-of-stock`
-- `startDate`, `endDate`: Filter by creation date
-- `sortBy`: `name`, `price`, `quantity`, `created_at`
-- `sortOrder`: `ASC` or `DESC`
-#### Example Request
-```
-GET /report?status=in-stock&sortBy=price&sortOrder=ASC
-```
-#### Response
-```json
-{
-  "message": "Report generated",
-  "data": [...]
-}
-```
+#### **List Inventory Items**
+- **Endpoint:** `GET /api/inventory/list`
+- **Query Parameters (Optional):**
+  - `name`: Filter by name
+  - `minPrice`: Minimum price filter
+  - `maxPrice`: Maximum price filter
+  - `minQuantity`: Minimum quantity filter
+  - `maxQuantity`: Maximum quantity filter
+- **Response:**
+  ```json
+  {
+    "message": "Inventory list retrieved",
+    "data": [ ... ]
+  }
+  ```
 
-## Running the API
-Start the server using:
-```sh
-npm run dev
-```
+#### **Update Inventory Item**
+- **Endpoint:** `PUT /api/inventory/update/:id`
+- **Authentication:** Requires Bearer Token
+- **Body:** (Any fields can be updated)
+  ```json
+  {
+    "name": "Updated Laptop",
+    "quantity": 5
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Inventory updated successfully",
+    "data": { ... }
+  }
+  ```
 
-## Conclusion
-This API provides an efficient way to manage an inventory system, allowing users to add, update, and monitor stock levels. For any improvements or issues, feel free to contribute or raise an issue!
+#### **Stock Check-In**
+- **Endpoint:** `PUT /api/inventory/stock-in/:id`
+- **Authentication:** Requires Bearer Token
+- **Body:**
+  ```json
+  {
+    "quantity": 10
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Stock checked in",
+    "data": { ... }
+  }
+  ```
 
----
+#### **Stock Check-Out**
+- **Endpoint:** `PUT /api/inventory/stock-out/:id`
+- **Authentication:** Requires Bearer Token
+- **Body:**
+  ```json
+  {
+    "quantity": 5
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "message": "Stock checked out",
+    "data": { ... }
+  }
+  ```
 
-Let me know if you need modifications! 🚀
+### **Report Generation API**
+- **Endpoint:** `GET /api/inventory/report`
+- **Authentication:** Requires Bearer Token
+- **Query Parameters (Optional):**
+  - `name`: Filter by name
+  - `minPrice`: Minimum price filter
+  - `maxPrice`: Maximum price filter
+  - `minQuantity`: Minimum quantity filter
+  - `maxQuantity`: Maximum quantity filter
+  - `status`: `in-stock` or `out-of-stock`
+  - `startDate`: Filter by creation date (start)
+  - `endDate`: Filter by creation date (end)
+  - `sortBy`: Field to sort (`name`, `price`, `quantity`, `created_at`)
+  - `sortOrder`: `ASC` or `DESC`
+- **Response:**
+  ```json
+  {
+    "message": "Report generated",
+    "data": [ ... ]
+  }
+  ```
+
+## How to Test APIs in Postman
+1. **Login** using `POST /api/auth/login` and get the JWT token.
+2. **Use the token** in headers:
+   - Key: `Authorization`
+   - Value: `Bearer your_jwt_token`
+3. **Call other APIs** while passing the token in the Authorization header.
+
+## License
+This project is licensed under the MIT License.
 
