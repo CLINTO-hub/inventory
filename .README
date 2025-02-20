@@ -180,7 +180,7 @@ GET /report?status=in-stock&sortBy=price&sortOrder=ASC
 ## Running the API
 Start the server using:
 ```sh
-npm start
+npm run dev
 ```
 
 ## Conclusion
