@@ -10,6 +10,16 @@ export const addInventory = async (req, res) => {
             return res.status(400).json({ message: "Name, quantity, description and price are required" });
         }
 
+
+        if (isNaN(price)) {
+            return res.status(400).json({ message: "Price must be a numeric value" });
+        }
+
+        if (description.trim().split(/\s+/).length < 5) {
+            return res.status(400).json({ message: "Description must contain at least 5 words" });
+        }
+
+
         const inventoryRepo = AppDataSource.getRepository(Inventory);
 
         const newInventory = inventoryRepo.create({
